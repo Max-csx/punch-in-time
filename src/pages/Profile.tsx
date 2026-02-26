@@ -1,9 +1,9 @@
 import { useTheme } from '@/lib/theme-provider'
-import { Settings, Bell, Info, Palette, Shield, Zap, Feather, Moon, Sun } from 'lucide-react'
+import { Settings, Bell, Info, Shield, Zap, Feather } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function Profile() {
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const isTech = theme === 'tech';
 
   return (

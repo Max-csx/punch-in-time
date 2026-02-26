@@ -3,18 +3,21 @@ import { useTheme } from '@/lib/theme-provider'
 import { Lock, Search, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import POEMS from "@/data/poems.json"
+import { useNavigate } from 'react-router-dom';
+
 
 export default function Library() {
   const { theme } = useTheme();
   const isTech = theme === 'tech';
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  // 过滤诗词
-  const filteredPoems = POEMS.filter(poem => 
-    poem.title.includes(searchQuery) || 
+
+  const filteredPoems = POEMS.filter(poem =>
+    poem.title.includes(searchQuery) ||
     poem.author.includes(searchQuery) ||
-    poem.lines.some(line => line.includes(searchQuery))
-  ).slice(0, 20); // 仅展示前 20 首以保持性能
+    poem.content.some(line => line.includes(searchQuery))
+  )
 
   return (
     <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -29,7 +32,7 @@ export default function Library() {
               "text-[10px] font-bold uppercase tracking-[0.3em]",
               isTech ? "text-primary" : "text-[#374151]"
             )}>
-              {isTech ? "经典诗词档案" : "万卷书屋 / 经典集成"}
+              万卷书屋 / 经典集成
             </span>
           </div>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -37,14 +40,14 @@ export default function Library() {
               "text-4xl md:text-5xl font-black tracking-tighter",
               isTech ? "text-white" : "text-[#111827]"
             )}>
-              {isTech ? "全唐诗词库" : "经典诗词库"}
+              经典诗词库
             </h1>
             <div className={cn(
               "flex items-center gap-3 px-4 py-2 rounded-lg border transition-all w-full md:w-80",
               isTech ? "bg-[#1a1a1a] border-white/10" : "bg-slate-50 border-slate-200"
             )}>
               <Search className="w-4 h-4 text-muted-foreground" />
-              <input 
+              <input
                 type="text"
                 placeholder="搜索标题、作者或诗句..."
                 className="bg-transparent border-none outline-none text-sm w-full font-medium placeholder:text-muted-foreground/50"
@@ -59,10 +62,10 @@ export default function Library() {
       <div className="w-full max-w-4xl space-y-3 px-4 pb-24">
         {filteredPoems.length > 0 ? (
           filteredPoems.map((poem, i) => (
-            <div key={i} className={cn(
+            <div key={poem?.id} className={cn(
               "p-6 rounded-[12px] flex items-center justify-between group transition-all border cursor-pointer",
-              isTech 
-                ? "bg-[#1a1a1a] border-white/5 hover:border-primary/50" 
+              isTech
+                ? "bg-[#1a1a1a] border-white/5 hover:border-primary/50"
                 : "bg-white border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
             )}>
               <div className="flex items-center gap-6">
@@ -87,7 +90,7 @@ export default function Library() {
                 "flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity",
                 isTech ? "text-primary" : "text-black"
               )}>
-                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">开始研习</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline" onClick={() => navigate(`/punch-in?poemId=${poem?.id}`)}>开始研习</span>
                 <ChevronRight className="w-5 h-5" />
               </div>
             </div>
@@ -130,13 +133,13 @@ export default function Library() {
       {/* 底部加载进度 */}
       <div className={cn(
         "fixed bottom-28 md:bottom-12 w-full max-w-4xl mx-4 p-8 rounded-[12px] text-center border transition-all z-20 backdrop-blur-md",
-        isTech 
-          ? "bg-[#1a1a1a]/80 border-white/10" 
+        isTech
+          ? "bg-[#1a1a1a]/80 border-white/10"
           : "bg-white/80 border-slate-200 shadow-2xl"
       )}>
         <div className="flex justify-between mb-4">
           <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em]">
-            {isTech ? "数据节点：活跃" : "诗库同步状态"}
+            {isTech ? "Data Nodes: Active" : "诗库同步状态"}
           </p>
           <p className="text-[10px] font-mono text-primary font-bold uppercase tracking-[0.3em]">
             已加载 {filteredPoems.length} / {POEMS.length}
@@ -146,11 +149,11 @@ export default function Library() {
           "w-full h-1.5 rounded-full overflow-hidden",
           isTech ? "bg-white/5" : "bg-slate-100"
         )}>
-          <div 
+          <div
             className={cn(
               "h-full transition-all duration-1000 ease-out",
               isTech ? "bg-primary shadow-[0_0_15px_rgba(124,58,237,0.5)]" : "bg-black"
-            )} 
+            )}
             style={{ width: `${(filteredPoems.length / POEMS.length) * 100}%` }}
           />
         </div>

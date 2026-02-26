@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Star, Share2, CheckCircle2, X, Feather, ChevronLeft, Image as ImageIcon, PlayCircle } from "lucide-react"
+import { Share2, CheckCircle2, X, Feather, ChevronLeft, Image as ImageIcon, PlayCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import POEMS from "@/data/poems.json"
 import { useTheme } from '@/lib/theme-provider'
@@ -12,20 +12,17 @@ export default function PunchIn() {
   const { theme } = useTheme();
   const isTech = theme === 'tech';
   const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const poemId = Number(urlParams.get('poemId') || '1');
   const [poem, setPoem] = useState(POEMS[0]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedIn, setPunchedIn] = useState(false);
   const [isExamining, setIsExamining] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
-  // 模拟每天轮换，确保与首页一致
   useEffect(() => {
-    const validPoems = POEMS.filter(p => p.content && p.content.length > 0);
-    const day = new Date().getDate();
-    const month = new Date().getMonth();
-    const index = (day + month * 31) % validPoems.length;
-    setPoem(validPoems[0]);
-  }, []);
+    setPoem( POEMS[poemId - 1] || POEMS[0]);
+  }, [poemId]);
 
   // 为当前诗词生成 4 张模拟图片（使用 Unsplash 关键词）
   const examImages = useMemo(() => {
@@ -54,6 +51,7 @@ export default function PunchIn() {
   };
 
   const handleSelectImage = (id: number) => {
+    console.log(id);
     // 模拟考试逻辑：这里默认第一张是“正确”的，但为了体验，点击任意图片均视为完成
     setIsExamining(false);
     setPunchedIn(true);
@@ -69,8 +67,8 @@ export default function PunchIn() {
     <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto w-full">
       {/* 顶部返回与标题 */}
       <header className="w-full mb-12 px-4 pt-8 flex items-center justify-between">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => isExamining ? setIsExamining(false) : navigate('/')}
           className={cn(
             "gap-2 hover:bg-transparent px-0",
@@ -112,16 +110,16 @@ export default function PunchIn() {
                   <h3 className={cn("text-lg font-bold flex items-center gap-2", isTech ? "text-primary" : "text-black")}>
                     <PlayCircle className="w-5 h-5" /> 诗词动画研习
                   </h3>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowFlash(false)}
                     className={cn(isTech ? "text-white/40 hover:text-white" : "text-slate-400 hover:text-black")}
                   >
                     <X className="w-4 h-4 mr-2" /> 关闭动画
                   </Button>
                 </div>
-                <FlashPlayer url="/swf/1.swf" className="shadow-2xl" />
+                <FlashPlayer url={`/swf/${poem?.id}.swf`} className="shadow-2xl" />
               </div>
             )}
 
@@ -129,13 +127,13 @@ export default function PunchIn() {
             <div className="relative group">
               {!showFlash && (
                 <div className="absolute top-4 right-4 z-10">
-                  <Button 
+                  <Button
                     onClick={() => setShowFlash(true)}
                     variant="outline"
                     className={cn(
                       "h-10 rounded-full gap-2 border shadow-sm transition-all hover:scale-105 active:scale-95",
-                      isTech 
-                        ? "bg-[#1a1a1a] border-white/10 text-primary hover:bg-[#2a2a2a]" 
+                      isTech
+                        ? "bg-[#1a1a1a] border-white/10 text-primary hover:bg-[#2a2a2a]"
                         : "bg-white border-slate-200 text-black hover:bg-slate-50"
                     )}
                   >
@@ -149,11 +147,11 @@ export default function PunchIn() {
               ) : (
                 <div className="absolute -inset-8 rounded-[4rem] bg-gradient-to-r from-[#ff8000]/5 via-[#00cc88]/5 to-[#00bbff]/5 blur-2xl" />
               )}
-              
+
               <Card className={cn(
                 "relative border overflow-hidden flex flex-col transition-all duration-700 min-h-[500px]",
-                isTech 
-                  ? "bg-[#1a1a1a] border-white/10 rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.3)]" 
+                isTech
+                  ? "bg-[#1a1a1a] border-white/10 rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                   : "bg-white border-slate-200 rounded-[12px] shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
               )}>
                 <CardContent className="p-12 md:p-20 flex-1 flex flex-col items-center justify-center text-center relative">
@@ -171,12 +169,20 @@ export default function PunchIn() {
                       </h2>
                       <div className="flex flex-col items-center gap-2 pt-2">
                         <div className={cn("h-px w-12", isTech ? "bg-white/10" : "bg-slate-200")} />
-                        <p className={cn(
-                          "text-xl md:text-2xl font-bold tracking-tighter",
-                          isTech ? "text-[#b3b3b3]" : "text-[#374151]"
-                        )}>
-                          {poem.author}
-                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className={cn(
+                            "text-sm px-2 py-0.5 rounded-full",
+                            isTech ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500"
+                          )}>
+                            {poem.dynasty}
+                          </span>
+                          <p className={cn(
+                            "text-xl md:text-2xl font-bold tracking-tighter",
+                            isTech ? "text-[#b3b3b3]" : "text-[#374151]"
+                          )}>
+                            {poem.author}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -202,12 +208,12 @@ export default function PunchIn() {
                     "absolute -inset-1 rounded-full blur transition duration-1000 group-hover:duration-200",
                     isTech ? "bg-primary/30 opacity-0 group-hover:opacity-100" : "bg-black opacity-5 group-hover:opacity-10"
                   )} />
-                  <Button 
+                  <Button
                     onClick={handleStartExam}
                     className={cn(
                       "relative w-full h-20 md:h-24 rounded-xl border text-2xl md:text-3xl font-bold tracking-tighter gap-4 transition-all active:scale-[0.99]",
-                      isTech 
-                        ? "bg-primary text-white border-transparent hover:opacity-90 shadow-[0_0_20px_rgba(124,58,237,0.3)]" 
+                      isTech
+                        ? "bg-primary text-white border-transparent hover:opacity-90 shadow-[0_0_20px_rgba(124,58,237,0.3)]"
                         : "bg-black text-white border-transparent hover:bg-[#1a1a1a] shadow-xl"
                     )}
                   >
@@ -238,13 +244,13 @@ export default function PunchIn() {
                       </p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleShare}
                     variant="outline"
                     className={cn(
                       "w-full h-16 rounded-xl font-bold gap-3 text-xl border transition-all hover:scale-[1.02]",
-                      isTech 
-                        ? "border-white/5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white" 
+                      isTech
+                        ? "border-white/5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white"
                         : "border-slate-200 bg-white hover:bg-slate-50 text-[#111827] shadow-sm"
                     )}
                   >
@@ -279,9 +285,9 @@ export default function PunchIn() {
                     isTech ? "border-white/5 hover:border-primary" : "border-slate-100 hover:border-black"
                   )}
                 >
-                  <img 
-                    src={img.src} 
-                    alt="exam-option" 
+                  <img
+                    src={img.src}
+                    alt="exam-option"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
@@ -314,11 +320,11 @@ export default function PunchIn() {
           <div className="relative group max-w-lg w-full">
             <div className={cn(
               "relative border p-12 md:p-16 flex flex-col items-center text-center shadow-2xl transition-all",
-              isTech 
-                ? "bg-[#1a1a1a] border-white/10 rounded-xl" 
+              isTech
+                ? "bg-[#1a1a1a] border-white/10 rounded-xl"
                 : "bg-white border-slate-200 rounded-[12px]"
             )}>
-              <button 
+              <button
                 onClick={() => setShowSuccess(false)}
                 className={cn(
                   "absolute top-6 right-6 p-2 rounded-full transition-all hover:rotate-90",
@@ -347,16 +353,16 @@ export default function PunchIn() {
                 "text-lg font-medium mb-10 leading-relaxed px-4",
                 isTech ? "text-[#b3b3b3]" : "text-[#374151]"
               )}>
-                宝贝今天背会了《{poem.title}》！<br/>
+                宝贝今天背会了《{poem.title}》！<br />
                 学习足迹已同步，快分享给家人看看吧。
               </p>
 
-              <Button 
+              <Button
                 onClick={handleShare}
                 className={cn(
                   "w-full h-16 rounded-xl font-black text-2xl shadow-2xl transition-all hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-3",
-                  isTech 
-                    ? "bg-primary text-white shadow-primary/30 hover:opacity-90" 
+                  isTech
+                    ? "bg-primary text-white shadow-primary/30 hover:opacity-90"
                     : "bg-[#07C160] text-white shadow-emerald-500/20 hover:bg-[#06ad56]"
                 )}
               >
