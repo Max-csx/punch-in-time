@@ -215,7 +215,6 @@ export default function AppLayout() {
             <>
               <Sparkles className="w-6 h-6 stroke-[2.5px] animate-pulse" />
               <span className="text-[10px] font-black tracking-widest uppercase opacity-100 flex items-center gap-1">
-                自适应
                 <span className="text-[8px] bg-primary/20 text-primary px-1 rounded-[4px]">AUTO</span>
               </span>
             </>

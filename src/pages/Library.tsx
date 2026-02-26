@@ -89,8 +89,10 @@ export default function Library() {
               <div className={cn(
                 "flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity",
                 isTech ? "text-primary" : "text-black"
-              )}>
-                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline" onClick={() => navigate(`/punch-in?poemId=${poem?.id}`)}>开始研习</span>
+              )}
+                onClick={() => navigate(`/punch-in?poemId=${poem?.id}`)}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline" >开始研习</span>
                 <ChevronRight className="w-5 h-5" />
               </div>
             </div>
