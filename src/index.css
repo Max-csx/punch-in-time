@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 默认主题 (Tech/Railway Style) */
+    --background: 0 0% 4%; /* #0a0a0a */
+    --foreground: 0 0% 100%; /* #ffffff */
+
+    --card: 0 0% 10%; /* #1a1a1a */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 258 89% 66%; /* #7c3aed (紫色) */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 10%; /* #1a1a1a */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 7%;
+    --muted-foreground: 0 0% 70%; /* #b3b3b3 */
+
+    --accent: 258 89% 66%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 258 89% 66%;
+
+    --radius: 0.75rem; /* 12px 统一圆角 */
+    
+    --theme-name: "tech";
+  }
+
+  .theme-tech {
+    /* 显式定义 .theme-tech 确保覆盖 */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
+    --primary: 258 89% 66%;
+    --muted-foreground: 0 0% 70%;
+    --border: 0 0% 15%;
+    --theme-name: "tech";
+  }
+
+  .theme-childlike {
+    /* 极简主义 + 未来感 + AI 科技风 (Vercel/Runway 风格) */
+    --background: 0 0% 100%; /* #ffffff 纯白背景 */
+    --foreground: 224 71% 4%; /* #111827 深黑文字 */
+
+    --card: 0 0% 98%; /* #f9f9f9 轻微灰底卡片 */
+    --card-foreground: 224 71% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+
+    --primary: 0 0% 0%; /* #000000 黑色强调色 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%; /* #f1f1f1 次要背景 */
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%; /* #374151 中灰次色 */
+
+    --accent: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%; /* 精细边框 */
+    --input: 220 13% 91%;
+    --ring: 0 0% 0%;
+
+    --radius: 0.5rem; /* 8px 统一圆角 */
+    
+    --theme-name: "childlike";
+  }
+
+  .dark {
+    /* 如果需要暗色科技风，可以单独定义，目前科技风本身就是暗色系 */
+    --background: 230 25% 4%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
