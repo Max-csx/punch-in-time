@@ -227,10 +227,9 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
             type="application/x-shockwave-flash"
             className="w-full h-full"
             style={{ background: '#000' }}
-            quality="high"
-            allowScriptAccess="always"
-            allowFullScreen="true"
-            autoPlay={autoPlay ? 'true' : 'false'}
+            // allowScriptAccess="always"
+            // allowFullScreen="true"
+            // autoPlay={autoPlay ? 'true' : 'false'}
           />
         </object>
       )}

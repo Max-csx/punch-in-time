@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useTheme } from '@/lib/theme-provider';
-import { Lock, Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import POEMS from '@/data/poems.json';
 import { useNavigate } from 'react-router-dom';
