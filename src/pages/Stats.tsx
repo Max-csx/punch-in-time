@@ -44,7 +44,7 @@ export default function Stats() {
             "text-4xl md:text-5xl font-black tracking-tighter",
             isTech ? "text-white" : "text-[#111827]"
           )}>
-            {isTech ? "诵读成果统计" : "我的成长点滴"}
+            我的成长点滴
           </h1>
         </div>
       </header>

@@ -26,7 +26,7 @@ export default function Profile() {
             "text-4xl md:text-5xl font-black tracking-tighter",
             isTech ? "text-white" : "text-[#111827]"
           )}>
-            {isTech ? "静谧夜研习中心" : "明媚日账户"}
+            研习中心
           </h1>
         </div>
       </header>
