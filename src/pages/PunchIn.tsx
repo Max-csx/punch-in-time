@@ -37,46 +37,65 @@ export default function PunchIn() {
     const [isExamining, setIsExamining] = useState(false);
     const [showFlash, setShowFlash] = useState(false);
     const [showShareGuide, setShowShareGuide] = useState(false);
+    const [showError, setShowError] = useState(false);
 
     useEffect(() => {
         setPoem(POEMS[poemId - 1] || POEMS[0]);
     }, [poemId, POEMS]);
 
-    // 为当前诗词生成 4 张模拟图片（使用 Unsplash 关键词）
+    // 为当前诗词生成 4 张考试图片：当前诗词图片 + 3张其他诗词图片
     const examImages = useMemo(() => {
-        const keywords = [
-            poem.title.slice(0, 2),
-            'nature',
-            'mountain',
-            'river',
-            'ink painting',
-            'chinese culture',
-            'ancient',
+        // 获取所有有 image 字段的其他诗词
+        const otherPoemsWithImage = POEMS.filter(
+            p => p.image && p.id !== poem.id
+        );
+
+        // 随机打乱并取3张
+        const shuffled = [...otherPoemsWithImage].sort(() => Math.random() - 0.5);
+        const randomOthers = shuffled.slice(0, 3);
+
+        // 构建选项：当前诗词图片 + 3张其他图片
+        const options = [
+            { id: 0, src: poem.image || '', isCorrect: true, alt: '意境考核选项 A' },
+            ...randomOthers.map((p, i) => ({
+                id: i + 1,
+                src: p.image || '',
+                isCorrect: false,
+                alt: `意境考核选项 ${String.fromCharCode(66 + i)}`,
+            })),
         ];
-        // 使用固定随机种子保证图片稳定性
-        const seed = poem.title.charCodeAt(0) + poem.title.charCodeAt(poem.title.length - 1);
-        const shuffled = [...keywords]
-            .sort((a, b) => {
-                const hashA = (a.charCodeAt(0) + seed) % 1000;
-                const hashB = (b.charCodeAt(0) + seed) % 1000;
-                return hashA - hashB;
-            })
-            .slice(0, 4);
-        return shuffled.map((_kw, i) => ({
-            id: i,
-            src: `https://picsum.photos/seed/${poem.title}-${i}/400/400`,
-            alt: `意境考核选项 ${String.fromCharCode(65 + i)}`,
-        }));
-    }, [poem.title]);
+
+        // 打乱顺序
+        return options.sort(() => Math.random() - 0.5);
+    }, [poem]);
+
+    // 预加载考试图片
+    useEffect(() => {
+        examImages.forEach(img => {
+            if (img.src) {
+                const preloadLink = document.createElement('link');
+                preloadLink.rel = 'preload';
+                preloadLink.as = 'image';
+                preloadLink.href = img.src;
+                document.head.appendChild(preloadLink);
+            }
+        });
+    }, [examImages]);
 
     const handleStartExam = () => {
         setIsExamining(true);
     };
 
-    const handleSelectImage = (_id: number) => {
-        setIsExamining(false);
-        setPunchedIn(true);
-        setShowSuccess(true);
+    const handleSelectImage = (isCorrect: boolean) => {
+        if (isCorrect) {
+            setShowError(false);
+            setIsExamining(false);
+            setPunchedIn(true);
+            setShowSuccess(true);
+        } else {
+            setShowError(true);
+            setTimeout(() => setShowError(false), 2000);
+        }
     };
 
     const handleShare = () => {
@@ -375,7 +394,7 @@ export default function PunchIn() {
                             {examImages.map(img => (
                                 <button
                                     key={img.id}
-                                    onClick={() => handleSelectImage(img.id)}
+                                    onClick={() => handleSelectImage(img.isCorrect)}
                                     className={cn(
                                         'relative aspect-square rounded-2xl overflow-hidden border-4 transition-all group active:scale-95',
                                         isTech
@@ -389,19 +408,21 @@ export default function PunchIn() {
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                                    <div
-                                        className={cn(
-                                            'absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border',
-                                            isTech
-                                                ? 'bg-[#1a1a1a] text-white border-white/10'
-                                                : 'bg-white text-black border-slate-200'
-                                        )}
-                                    >
-                                        {String.fromCharCode(65 + img.id)}
-                                    </div>
                                 </button>
                             ))}
                         </div>
+
+                        {/* 错误提示 */}
+                        {showError && (
+                            <div className={cn(
+                                'px-6 py-3 rounded-full text-sm font-bold animate-in fade-in zoom-in duration-300',
+                                isTech
+                                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                    : 'bg-red-50 text-red-600 border border-red-200'
+                            )}>
+                                再仔细想想，选择最符合诗意的图片
+                            </div>
+                        )}
 
                         <div
                             className={cn(
