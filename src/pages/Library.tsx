@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useTheme } from '@/lib/theme-provider';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import POEMS from '@/data/poems.json';
 import { useNavigate } from 'react-router-dom';
@@ -11,8 +11,17 @@ export default function Library() {
     const isTech = theme === 'tech';
     const [searchQuery, setSearchQuery] = useState('');
     const [scrollProgress, setScrollProgress] = useState(0);
+    const [completedPoems, setCompletedPoems] = useState<number[]>([]);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+
+    // 读取已完成的诗词状态
+    useEffect(() => {
+        const saved = localStorage.getItem('completedPoems');
+        if (saved) {
+            setCompletedPoems(JSON.parse(saved));
+        }
+    }, []);
 
     const filteredPoems = useMemo(
         () =>
@@ -136,11 +145,14 @@ export default function Library() {
                                 <div className="flex flex-col">
                                     <h3
                                         className={cn(
-                                            'text-xl font-bold tracking-tight',
+                                            'text-xl font-bold tracking-tight flex items-center gap-2',
                                             isTech ? 'text-white' : 'text-[#111827]'
                                         )}
                                     >
                                         {poem.title}
+                                        {completedPoems.includes(poem.id) && (
+                                            <CheckCircle className="w-5 h-5 text-green-500" />
+                                        )}
                                     </h3>
                                     <p
                                         className={cn(

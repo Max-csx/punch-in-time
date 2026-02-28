@@ -3,11 +3,24 @@ import { Feather } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTheme } from '@/lib/theme-provider'
 import { useNavigate } from 'react-router-dom'
+import POEMS from '@/data/poems.json'
 
 export default function Home() {
   const { theme } = useTheme();
   const isTech = theme === 'tech';
   const navigate = useNavigate();
+
+  // 获取第一个未完成考试的诗词ID
+  const getFirstUncompletedPoemId = () => {
+    const completedPoems = JSON.parse(localStorage.getItem('completedPoems') || '[]');
+    const uncompletedPoem = POEMS.find(poem => !completedPoems.includes(poem.id));
+    return uncompletedPoem?.id || 1;
+  };
+
+  const handleStartLearning = () => {
+    const poemId = getFirstUncompletedPoemId();
+    navigate(`/punch-in?poemId=${poemId}`);
+  };
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-[80vh]">
@@ -45,8 +58,8 @@ export default function Home() {
           </p>
           
           <div className="flex flex-wrap justify-center gap-6 mt-12">
-            <Button 
-              onClick={() => navigate('/punch-in')} 
+            <Button
+              onClick={handleStartLearning}
               className={cn(
                 "h-[64px] px-12 rounded-2xl text-xl font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-3",
                 isTech 

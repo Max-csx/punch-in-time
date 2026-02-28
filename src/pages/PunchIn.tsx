@@ -7,13 +7,15 @@ import {
     X,
     Feather,
     ChevronLeft,
+    ChevronUp,
+    ChevronDown,
     Image as ImageIcon,
     PlayCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import POEMS from '@/data/poems.json';
 import { useTheme } from '@/lib/theme-provider';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import FlashPlayer from '@/components/shared/FlashPlayer';
 import ShareGuide from '@/components/shared/ShareGuide';
 
@@ -21,8 +23,8 @@ export default function PunchIn() {
     const { theme } = useTheme();
     const isTech = theme === 'tech';
     const navigate = useNavigate();
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawPoemId = urlParams.get('poemId');
+    const [searchParams] = useSearchParams();
+    const rawPoemId = searchParams.get('poemId');
     // 验证 poemId：确保是有效正整数，且在数组范围内
     const poemId =
         rawPoemId &&
@@ -92,6 +94,12 @@ export default function PunchIn() {
             setIsExamining(false);
             setPunchedIn(true);
             setShowSuccess(true);
+            // 保存完成状态到 localStorage
+            const completedPoems = JSON.parse(localStorage.getItem('completedPoems') || '[]');
+            if (!completedPoems.includes(poem.id)) {
+                completedPoems.push(poem.id);
+                localStorage.setItem('completedPoems', JSON.stringify(completedPoems));
+            }
         } else {
             setShowError(true);
             setTimeout(() => setShowError(false), 2000);
@@ -102,10 +110,29 @@ export default function PunchIn() {
         setShowShareGuide(true);
     };
 
+    // 导航到上一首诗词
+    const goToPrevPoem = () => {
+        if (poemId > 1) {
+            navigate(`/punch-in?poemId=${poemId - 1}`);
+            setPunchedIn(false);
+        }
+    };
+
+    // 导航到下一首诗词
+    const goToNextPoem = () => {
+        if (poemId < POEMS.length) {
+            navigate(`/punch-in?poemId=${poemId + 1}`);
+            setPunchedIn(false);
+        }
+    };
+
     return (
         <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto w-full">
             {/* 顶部返回与标题 */}
-            <header className="w-full mb-12 px-4 pt-8 flex items-center justify-between">
+            <header className={cn(
+                'sticky top-0 z-30 w-full mb-12 px-4 pt-8 pb-4 flex items-center justify-between backdrop-blur-xl',
+                isTech ? 'bg-[#0a0a0a]/80' : 'bg-white/80'
+            )}>
                 <Button
                     variant="ghost"
                     onClick={() => (isExamining ? setIsExamining(false) : navigate('/'))}
@@ -147,7 +174,7 @@ export default function PunchIn() {
                 </div>
             </header>
 
-            <main className="w-full flex-1 flex flex-col gap-12 px-4 pb-24 relative">
+            <main className="w-full flex-1 flex flex-col gap-4 md:gap-12 px-4 pb-24 relative">
                 {poem.image && (
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm -z-10" />
                 )}
@@ -295,36 +322,95 @@ export default function PunchIn() {
                         </div>
 
                         <div className="flex flex-col items-center gap-8">
+                            {/* 上下首切换按钮 */}
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={goToPrevPoem}
+                                    disabled={poemId <= 1}
+                                    className={cn(
+                                        'flex items-center gap-1 px-4 py-2 rounded-full border text-sm font-bold transition-all',
+                                        poemId <= 1
+                                            ? 'opacity-30 cursor-not-allowed'
+                                            : 'active:scale-95',
+                                        isTech
+                                            ? 'bg-[#1a1a1a] border-white/10 text-white'
+                                            : 'bg-white border-slate-200 text-black'
+                                    )}
+                                >
+                                    <ChevronUp className="w-4 h-4" />
+                                    上一首
+                                </button>
+                                <span className={cn(
+                                    'text-sm font-mono',
+                                    isTech ? 'text-white/50' : 'text-slate-400'
+                                )}>
+                                    {poemId} / {POEMS.length}
+                                </span>
+                                <button
+                                    onClick={goToNextPoem}
+                                    disabled={poemId >= POEMS.length}
+                                    className={cn(
+                                        'flex items-center gap-1 px-4 py-2 rounded-full border text-sm font-bold transition-all',
+                                        poemId >= POEMS.length
+                                            ? 'opacity-30 cursor-not-allowed'
+                                            : 'active:scale-95',
+                                        isTech
+                                            ? 'bg-[#1a1a1a] border-white/10 text-white'
+                                            : 'bg-white border-slate-200 text-black'
+                                    )}
+                                >
+                                    下一首
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                            </div>
+
                             {!punchedIn ? (
-                                <div className="w-full group relative max-w-2xl">
-                                    <div
-                                        className={cn(
-                                            'absolute -inset-1 rounded-full blur transition duration-1000 group-hover:duration-200',
-                                            isTech
-                                                ? 'bg-primary/30 opacity-0 group-hover:opacity-100'
-                                                : 'bg-black opacity-5 group-hover:opacity-10'
-                                        )}
-                                    />
-                                    <Button
-                                        onClick={handleStartExam}
-                                        className={cn(
-                                            'relative w-full h-20 md:h-24 rounded-xl border text-2xl md:text-3xl font-bold tracking-tighter gap-4 transition-all active:scale-[0.99]',
-                                            isTech
-                                                ? 'bg-primary text-white border-transparent hover:opacity-90 shadow-[0_0_20px_rgba(124,58,237,0.3)]'
-                                                : 'bg-black text-white border-transparent hover:bg-[#1a1a1a] shadow-xl'
-                                        )}
-                                    >
+                                poem.image ? (
+                                    <div className="w-full group relative max-w-2xl">
                                         <div
                                             className={cn(
-                                                'w-12 h-12 rounded-lg flex items-center justify-center',
-                                                isTech ? 'bg-white/20' : 'bg-white/10'
+                                                'absolute -inset-1 rounded-full blur transition duration-1000 group-hover:duration-200',
+                                                isTech
+                                                    ? 'bg-primary/30 opacity-0 group-hover:opacity-100'
+                                                    : 'bg-black opacity-5 group-hover:opacity-10'
+                                            )}
+                                        />
+                                        <Button
+                                            onClick={handleStartExam}
+                                            className={cn(
+                                                'relative w-full h-20 md:h-24 rounded-xl border text-2xl md:text-3xl font-bold tracking-tighter gap-4 transition-all active:scale-[0.99]',
+                                                isTech
+                                                    ? 'bg-primary text-white border-transparent hover:opacity-90 shadow-[0_0_20px_rgba(124,58,237,0.3)]'
+                                                    : 'bg-black text-white border-transparent hover:bg-[#1a1a1a] shadow-xl'
                                             )}
                                         >
-                                            <Feather className="w-6 h-6 text-white" />
-                                        </div>
-                                        开始考试
-                                    </Button>
-                                </div>
+                                            <div
+                                                className={cn(
+                                                    'w-12 h-12 rounded-lg flex items-center justify-center',
+                                                    isTech ? 'bg-white/20' : 'bg-white/10'
+                                                )}
+                                            >
+                                                <Feather className="w-6 h-6 text-white" />
+                                            </div>
+                                            开始考试
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 max-w-2xl w-full">
+                                        <p className={cn(
+                                            'text-sm font-medium opacity-60',
+                                            isTech ? 'text-white/60' : 'text-slate-500'
+                                        )}>
+                                            该诗词暂无配图，无法进行意境考核
+                                        </p>
+                                        <p className={cn(
+                                            'text-xs opacity-40',
+                                            isTech ? 'text-white/40' : 'text-slate-400'
+                                        )}>
+                                            请切换到下一首诗词继续学习
+                                        </p>
+                                    </div>
+                                )
                             ) : (
                                 <div className="flex flex-col items-center gap-6 w-full animate-in fade-in zoom-in duration-700 max-w-2xl">
                                     <div
