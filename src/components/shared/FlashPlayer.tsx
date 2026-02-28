@@ -9,76 +9,103 @@ interface FlashPlayerProps {
   autoPlay?: boolean;
 }
 
-declare global {
-  interface Window {
-    RufflePlayer: any;
-  }
-}
+// 初始化 Ruffle
+const initRuffle = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // 检查是否已加载
+    if ((window as any).RufflePlayer) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@ruffle-rs/ruffle@latest/ruffle.js';
+    script.onload = () => resolve();
+    script.onerror = () => {
+      // 如果 CDN 失败，尝试备用方案
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@latest/ruffle.js';
+      fallbackScript.onload = () => resolve();
+      fallbackScript.onerror = () => reject(new Error('Ruffle failed to load'));
+      document.head.appendChild(fallbackScript);
+    };
+    document.head.appendChild(script);
+  });
+};
 
 export default function FlashPlayer({ url, className, autoPlay = true }: FlashPlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLObjectElement>(null);
   const { theme } = useTheme();
   const isTech = theme === 'tech';
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [retryCount, setRetryCount] = useState(0);
+
+  const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+  console.log('[FlashPlayer] URL:', fullUrl);
 
   useEffect(() => {
     let isMounted = true;
 
-    const initRuffle = async () => {
-      if (!window.RufflePlayer) {
-        console.error("Ruffle script not loaded");
-        setStatus('error');
-        return;
-      }
-
-      const ruffle = window.RufflePlayer.newest();
-      const player = ruffle.createPlayer();
-      
-      // 强制 player 填满容器
-      player.style.width = '100%';
-      player.style.height = '100%';
-      player.style.display = 'block';
-      
-      playerRef.current = player;
-
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-        containerRef.current.appendChild(player);
-        
-        try {
-          await player.load(url);
-          if (isMounted) {
-            setStatus('ready');
-            if (autoPlay) {
-              player.play();
-            }
-          }
-        } catch (err) {
-          console.error("Failed to load SWF:", err);
-          if (isMounted) setStatus('error');
+    const init = async () => {
+      try {
+        await initRuffle();
+        if (isMounted) {
+          setStatus('ready');
         }
+      } catch (err) {
+        console.error("Failed to load Ruffle:", err);
+        if (isMounted) setStatus('error');
       }
     };
 
-    initRuffle();
+    setStatus('loading');
+    init();
 
     return () => {
       isMounted = false;
-      if (playerRef.current) {
-        playerRef.current.remove();
-      }
     };
-  }, [url, autoPlay]);
+  }, [retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount(c => c + 1);
+  };
 
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-2xl border transition-all aspect-video flex items-center justify-center bg-black/5",
+      "relative overflow-hidden rounded-2xl border transition-all aspect-video flex items-center justify-center",
       isTech ? "border-white/10" : "border-slate-200",
       className
     )}>
-      {/* Ruffle 容器 */}
-      <div ref={containerRef} className="w-full h-full" />
+      {/* Ruffle object - 使用标准 embed 方式 */}
+      {status === 'ready' && (
+        <object
+          ref={containerRef}
+          type="application/x-shockwave-flash"
+          data={fullUrl}
+          className="w-full h-full"
+          style={{ background: '#000' }}
+        >
+          <param name="movie" value={fullUrl} />
+          <param name="quality" value="high" />
+          <param name="allowScriptAccess" value="always" />
+          <param name="allowFullScreen" value="true" />
+          {autoPlay ? (
+            <param name="autoplay" value="true" />
+          ) : (
+            <param name="autoplay" value="false" />
+          )}
+          <embed
+            src={fullUrl}
+            type="application/x-shockwave-flash"
+            className="w-full h-full"
+            style={{ background: '#000' }}
+            quality="high"
+            allowScriptAccess="always"
+            allowFullScreen="true"
+            autoPlay={autoPlay ? 'true' : 'false'}
+          />
+        </object>
+      )}
 
       {/* 加载状态 */}
       {status === 'loading' && (
@@ -103,7 +130,7 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
             </p>
           </div>
           <button 
-            onClick={() => window.location.reload()}
+            onClick={handleRetry}
             className="mt-4 px-6 py-2 rounded-lg bg-primary text-white text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all"
           >
             重试
@@ -111,9 +138,9 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
         </div>
       )}
 
-      {/* 封面提示（非自动播放或准备就绪前） */}
+      {/* 封面提示（非自动播放） */}
       {status === 'ready' && !autoPlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 group cursor-pointer" onClick={() => playerRef.current?.play()}>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 group cursor-pointer">
           <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center transition-transform group-hover:scale-110">
             <Play className="w-8 h-8 text-white fill-white" />
           </div>

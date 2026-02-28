@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTheme } from '@/lib/theme-provider'
 import { Lock, Search, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -13,10 +13,12 @@ export default function Library() {
   const navigate = useNavigate();
 
 
-  const filteredPoems = POEMS.filter(poem =>
-    poem.title.includes(searchQuery) ||
-    poem.author.includes(searchQuery) ||
-    poem.content.some(line => line.includes(searchQuery))
+  const filteredPoems = useMemo(() => 
+    POEMS.filter(poem =>
+      poem.title.includes(searchQuery) ||
+      poem.author.includes(searchQuery) ||
+      poem.content.some(line => line.includes(searchQuery))
+    ), [searchQuery]
   )
 
   return (
@@ -50,6 +52,7 @@ export default function Library() {
               <input
                 type="text"
                 placeholder="搜索标题、作者或诗句..."
+                aria-label="搜索标题、作者或诗句"
                 className="bg-transparent border-none outline-none text-sm w-full font-medium placeholder:text-muted-foreground/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

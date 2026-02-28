@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+﻿import { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Share2, CheckCircle2, X, Feather, ChevronLeft, Image as ImageIcon, PlayCircle } from "lucide-react"
@@ -13,16 +13,20 @@ export default function PunchIn() {
   const isTech = theme === 'tech';
   const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
-  const poemId = Number(urlParams.get('poemId') || '1');
+  const rawPoemId = urlParams.get('poemId');
+  // 验证 poemId：确保是有效正整数，且在数组范围内
+  const poemId = (rawPoemId && /^\d+$/.test(rawPoemId) && Number(rawPoemId) > 0 && Number(rawPoemId) <= POEMS.length) 
+    ? Number(rawPoemId) 
+    : 1;
   const [poem, setPoem] = useState(POEMS[0]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [punchedIn, setPunchedIn] = useState(false);
   const [isExamining, setIsExamining] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
-
+  
   useEffect(() => {
-    setPoem( POEMS[poemId - 1] || POEMS[0]);
-  }, [poemId]);
+    setPoem(POEMS[poemId - 1] || POEMS[0]);
+  }, [poemId, POEMS]);
 
   // 为当前诗词生成 4 张模拟图片（使用 Unsplash 关键词）
   const examImages = useMemo(() => {
@@ -35,14 +39,17 @@ export default function PunchIn() {
       "chinese culture",
       "ancient"
     ];
-    // 随机打乱关键词并取 4 个
-    const shuffled = [...keywords].sort(() => 0.5 - Math.random()).slice(0, 4);
-    return shuffled.map((kw, i) => ({
+    // 使用固定随机种子保证图片稳定性
+    const seed = poem.title.charCodeAt(0) + poem.title.charCodeAt(poem.title.length - 1);
+    const shuffled = [...keywords].sort((a, b) => {
+      const hashA = (a.charCodeAt(0) + seed) % 1000;
+      const hashB = (b.charCodeAt(0) + seed) % 1000;
+      return hashA - hashB;
+    }).slice(0, 4);
+    return shuffled.map((_kw, i) => ({
       id: i,
-      url: `https://images.unsplash.com/photo-1500000000000?auto=format&fit=crop&w=400&q=80&sig=${i}&keyword=${encodeURIComponent(kw)}`, // 这里的 sig 保证图片不同
-      // 实际上 unsplash 的随机图片可以用 source.unsplash.com (已废弃) 或特定的 id
-      // 这里我们用带随机种子的高质量占位图
-      src: `https://picsum.photos/seed/${poem.title}-${i}/400/400`
+      src: `https://picsum.photos/seed/${poem.title}-${i}/400/400`,
+      alt: `意境考核选项 ${String.fromCharCode(65 + i)}`
     }));
   }, [poem.title]);
 
@@ -50,17 +57,16 @@ export default function PunchIn() {
     setIsExamining(true);
   };
 
-  const handleSelectImage = (id: number) => {
-    console.log(id);
-    // 模拟考试逻辑：这里默认第一张是“正确”的，但为了体验，点击任意图片均视为完成
-    setIsExamining(false);
+  const handleSelectImage = (_id: number) => {
+        setIsExamining(false);
     setPunchedIn(true);
     setShowSuccess(true);
   };
 
   const handleShare = () => {
-    const text = `[小小诗人] 🌟 宝贝今天背会了《${poem.title}》！学习进度已同步，打卡成功！📖`;
-    alert(`[模拟分享至微信群]\n\n内容如下：\n${text}`);
+    const shareText = `[小小诗人] 🌟 宝贝今天背会了《${poem.title}》！学习进度已同步，打卡成功！📖`;
+    // 提示用户分享功能（生产环境应替换为 toast 或分享菜单）
+    window.alert(`[模拟分享至微信群]\n\n内容如下：\n${shareText}`);
   };
 
   return (
@@ -287,7 +293,7 @@ export default function PunchIn() {
                 >
                   <img
                     src={img.src}
-                    alt="exam-option"
+                    alt={img.alt}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />

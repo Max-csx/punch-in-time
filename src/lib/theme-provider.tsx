@@ -21,9 +21,10 @@ const getSystemTheme = (): Theme => {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<Mode>(() => {
-    const savedMode = localStorage.getItem("app-theme-mode") as Mode;
-    // 默认开启自适应模式
-    return savedMode || "auto";
+    const savedMode = localStorage.getItem("app-theme-mode") as Mode | null;
+    // 验证存储的值是否有效
+    const validModes: Mode[] = ["auto", "day", "night"];
+    return (savedMode && validModes.includes(savedMode)) ? savedMode : "auto";
   });
 
   const [theme, setThemeState] = useState<Theme>(() => {
