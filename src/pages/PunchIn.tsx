@@ -7,6 +7,7 @@ import POEMS from "@/data/poems.json"
 import { useTheme } from '@/lib/theme-provider'
 import { useNavigate } from 'react-router-dom'
 import FlashPlayer from '@/components/shared/FlashPlayer'
+import ShareGuide from '@/components/shared/ShareGuide'
 
 export default function PunchIn() {
   const { theme } = useTheme();
@@ -23,6 +24,7 @@ export default function PunchIn() {
   const [punchedIn, setPunchedIn] = useState(false);
   const [isExamining, setIsExamining] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+  const [showShareGuide, setShowShareGuide] = useState(false);
   
   useEffect(() => {
     setPoem(POEMS[poemId - 1] || POEMS[0]);
@@ -64,9 +66,7 @@ export default function PunchIn() {
   };
 
   const handleShare = () => {
-    const shareText = `[小小诗人] 🌟 宝贝今天背会了《${poem.title}》！学习进度已同步，打卡成功！📖`;
-    // 提示用户分享功能（生产环境应替换为 toast 或分享菜单）
-    window.alert(`[模拟分享至微信群]\n\n内容如下：\n${shareText}`);
+    setShowShareGuide(true);
   };
 
   return (
@@ -373,12 +373,20 @@ export default function PunchIn() {
                 )}
               >
                 <Share2 className="w-6 h-6" />
-                一键分享微信群
+                分享给好友
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      {/* 分享引导弹窗 */}
+      <ShareGuide
+        visible={showShareGuide}
+        onClose={() => setShowShareGuide(false)}
+        title={`[小小诗人] 《${poem.title}》`}
+        desc={`宝贝今天背会了《${poem.title}》，学习进度已同步！`}
+      />
     </div>
   )
 }
