@@ -108,14 +108,15 @@ export default function Library() {
             {/* 诗词库 */}
             <div
                 ref={scrollContainerRef}
-                className="w-full max-w-4xl space-y-3 px-4 pb-48 overflow-y-auto h-[calc(100vh-400px)] custom-scrollbar"
+                className="w-full max-w-4xl space-y-3 px-4 pb-0 overflow-y-auto h-[calc(100vh-400px)] custom-scrollbar"
             >
                 {filteredPoems.length > 0 ? (
                     filteredPoems.map((poem, i) => (
                         <div
+                            onClick={() => navigate(`/punch-in?poemId=${poem?.id}`)}
                             key={poem?.id}
                             className={cn(
-                                'p-6 rounded-[12px] flex items-center justify-between group transition-all border cursor-pointer',
+                                'p-5 rounded-[12px] flex items-center justify-between group transition-all border cursor-pointer',
                                 isTech
                                     ? 'bg-[#1a1a1a] border-white/5 hover:border-primary/50'
                                     : 'bg-white border-slate-200 shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]'
@@ -156,7 +157,6 @@ export default function Library() {
                                     'flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity',
                                     isTech ? 'text-primary' : 'text-black'
                                 )}
-                                onClick={() => navigate(`/punch-in?poemId=${poem?.id}`)}
                             >
                                 <span className="text-[10px] font-bold uppercase tracking-widest hidden md:inline">
                                     开始研习
@@ -172,68 +172,18 @@ export default function Library() {
                         </p>
                     </div>
                 )}
-
-                {/* 底部未解锁预览 */}
-                <div className="pt-8 space-y-3">
-                    <p
-                        className={cn(
-                            'text-[10px] font-bold uppercase tracking-[0.3em] mb-4 text-center',
-                            isTech ? 'text-primary/50' : 'text-slate-400'
-                        )}
-                    >
-                        更多模块即将上线
-                    </p>
-                    {[1, 2].map(i => (
-                        <div
-                            key={i}
-                            className={cn(
-                                'p-6 rounded-[12px] flex items-center justify-between group transition-all cursor-not-allowed border opacity-30',
-                                isTech ? 'bg-[#1a1a1a] border-white/5' : 'bg-white border-slate-200'
-                            )}
-                        >
-                            <div className="flex items-center gap-6">
-                                <div
-                                    className={cn(
-                                        'w-12 h-12 rounded-lg flex items-center justify-center font-mono font-black text-lg border',
-                                        isTech ? 'bg-white/5 border-white/5' : 'bg-slate-50'
-                                    )}
-                                >
-                                    ??
-                                </div>
-                                <div className="space-y-2">
-                                    <div
-                                        className={cn(
-                                            'h-4 w-32 rounded-full',
-                                            isTech ? 'bg-white/10' : 'bg-slate-200'
-                                        )}
-                                    />
-                                    <div
-                                        className={cn(
-                                            'h-3 w-20 rounded-full',
-                                            isTech ? 'bg-white/5' : 'bg-slate-100'
-                                        )}
-                                    />
-                                </div>
-                            </div>
-                            <Lock className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                    ))}
-                </div>
             </div>
 
             {/* 底部滚动控制 */}
             <div
                 className={cn(
-                    'fixed bottom-20 md:bottom-6 w-[80%] max-w-4xl p-6 rounded-[12px] border transition-all z-20 backdrop-blur-md left-1/2 -translate-x-1/2',
+                    'fixed bottom-28 md:bottom-6 w-[80%] max-w-4xl p-3 md:p-6 rounded-[12px] border transition-all z-20 backdrop-blur-md left-1/2 -translate-x-1/2',
                     isTech
                         ? 'bg-[#1a1a1a]/80 border-white/10'
                         : 'bg-white/80 border-slate-200 shadow-2xl'
                 )}
             >
-                <div className="flex justify-between mb-3">
-                    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-[0.3em]">
-                        诗库
-                    </p>
+                <div className="flex justify-between mb-1 md:mb-3">
                     <p className="text-[10px] font-mono text-primary font-bold uppercase tracking-[0.3em]">
                         {filteredPoems.length} / {POEMS.length}
                     </p>
