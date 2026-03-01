@@ -9,6 +9,30 @@ interface FlashPlayerProps {
   autoPlay?: boolean;
 }
 
+// 初始化 Ruffle
+const initRuffle = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // 检查是否已加载
+    if ((window as any).RufflePlayer) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@ruffle-rs/ruffle@latest/ruffle.js';
+    script.onload = () => resolve();
+    script.onerror = () => {
+      // 如果 CDN 失败，尝试备用方案
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@latest/ruffle.js';
+      fallbackScript.onload = () => resolve();
+      fallbackScript.onerror = () => reject(new Error('Ruffle failed to load'));
+      document.head.appendChild(fallbackScript);
+    };
+    document.head.appendChild(script);
+  });
+};
+
 // 检测是否为移动端
 const isMobile = () => {
   return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent.toLowerCase());
@@ -47,18 +71,28 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
     };
   }, []);
 
-  // 检查 Ruffle 是否已加载
+  // 初始化 Ruffle
   useEffect(() => {
-    const checkRuffle = () => {
-      if ((window as any).RufflePlayer) {
-        setStatus('ready');
-      } else {
-        setStatus('error');
+    let isMounted = true;
+
+    const init = async () => {
+      try {
+        await initRuffle();
+        if (isMounted) {
+          setStatus('ready');
+        }
+      } catch (err) {
+        console.error("Failed to load Ruffle:", err);
+        if (isMounted) setStatus('error');
       }
     };
 
-    // Ruffle 已在 HTML 中加载，直接检查
-    checkRuffle();
+    setStatus('loading');
+    init();
+
+    return () => {
+      isMounted = false;
+    };
   }, [retryCount]);
 
   // 全屏切换
