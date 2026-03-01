@@ -54,7 +54,7 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
   const [orientation, setOrientation] = useState(getOrientation());
   const [showControls, setShowControls] = useState(true);
 
-  const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
+  const fullUrl = url
 
   // 监听屏幕方向变化
   useEffect(() => {
@@ -221,6 +221,7 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
       {/* Ruffle object - 使用标准 embed 方式 */}
       {status === 'ready' && (
         <object
+          key={fullUrl}
           ref={objectRef}
           type="application/x-shockwave-flash"
           data={fullUrl}
