@@ -9,30 +9,6 @@ interface FlashPlayerProps {
   autoPlay?: boolean;
 }
 
-// 初始化 Ruffle
-const initRuffle = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // 检查是否已加载
-    if ((window as any).RufflePlayer) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/@ruffle-rs/ruffle@latest/ruffle.js';
-    script.onload = () => resolve();
-    script.onerror = () => {
-      // 如果 CDN 失败，尝试备用方案
-      const fallbackScript = document.createElement('script');
-      fallbackScript.src = 'https://cdn.jsdelivr.net/npm/@ruffle-rs/ruffle@latest/ruffle.js';
-      fallbackScript.onload = () => resolve();
-      fallbackScript.onerror = () => reject(new Error('Ruffle failed to load'));
-      document.head.appendChild(fallbackScript);
-    };
-    document.head.appendChild(script);
-  });
-};
-
 // 检测是否为移动端
 const isMobile = () => {
   return /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent.toLowerCase());
@@ -54,7 +30,7 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
   const [orientation, setOrientation] = useState(getOrientation());
   const [showControls, setShowControls] = useState(true);
 
-  const fullUrl = url
+  const fullUrl = url.startsWith('http') ? url : `${window.location.origin}${url}`;
 
   // 监听屏幕方向变化
   useEffect(() => {
@@ -63,7 +39,6 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
     };
 
     window.addEventListener('resize', handleOrientationChange);
-    // 移动端监听方向变化
     window.addEventListener('orientationchange', handleOrientationChange);
 
     return () => {
@@ -72,28 +47,18 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
     };
   }, []);
 
-  // 初始化 Ruffle
+  // 检查 Ruffle 是否已加载
   useEffect(() => {
-    let isMounted = true;
-
-    const init = async () => {
-      try {
-        await initRuffle();
-        if (isMounted) {
-          setStatus('ready');
-        }
-      } catch (err) {
-        console.error("Failed to load Ruffle:", err);
-        if (isMounted) setStatus('error');
+    const checkRuffle = () => {
+      if ((window as any).RufflePlayer) {
+        setStatus('ready');
+      } else {
+        setStatus('error');
       }
     };
 
-    setStatus('loading');
-    init();
-
-    return () => {
-      isMounted = false;
-    };
+    // Ruffle 已在 HTML 中加载，直接检查
+    checkRuffle();
   }, [retryCount]);
 
   // 全屏切换
