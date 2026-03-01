@@ -33,7 +33,10 @@ export default function PunchIn() {
         Number(rawPoemId) <= POEMS.length
             ? Number(rawPoemId)
             : 1;
-    const [poem, setPoem] = useState(POEMS[0]);
+
+    // 直接从 poemId 计算 poem，不使用 state
+    const poem = useMemo(() => POEMS[poemId - 1] || POEMS[0], [poemId]);
+
     const [showSuccess, setShowSuccess] = useState(false);
     const [punchedIn, setPunchedIn] = useState(false);
     const [isExamining, setIsExamining] = useState(false);
@@ -41,19 +44,31 @@ export default function PunchIn() {
     const [showShareGuide, setShowShareGuide] = useState(false);
     const [showError, setShowError] = useState(false);
 
-    useEffect(() => {
-        setPoem(POEMS[poemId - 1] || POEMS[0]);
-    }, [poemId, POEMS]);
-
     // 为当前诗词生成 4 张考试图片：当前诗词图片 + 3张其他诗词图片
     const examImages = useMemo(() => {
+        // 使用 poem.id 作为种子的确定性伪随机函数
+        const seededRandom = (seed: number) => {
+            const x = Math.sin(seed) * 10000;
+            return x - Math.floor(x);
+        };
+
         // 获取所有有 image 字段的其他诗词
         const otherPoemsWithImage = POEMS.filter(
             p => p.image && p.id !== poem.id
         );
 
+        // 使用 Fisher-Yates 洗牌算法的确定性版本
+        const shuffleArray = <T,>(array: T[], seed: number): T[] => {
+            const result = [...array];
+            for (let i = result.length - 1; i > 0; i--) {
+                const j = Math.floor(seededRandom(seed + i) * (i + 1));
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            return result;
+        };
+
         // 随机打乱并取3张
-        const shuffled = [...otherPoemsWithImage].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleArray(otherPoemsWithImage, poem.id);
         const randomOthers = shuffled.slice(0, 3);
 
         // 构建选项：当前诗词图片 + 3张其他图片
@@ -67,8 +82,8 @@ export default function PunchIn() {
             })),
         ];
 
-        // 打乱顺序
-        return options.sort(() => Math.random() - 0.5);
+        // 打乱选项顺序
+        return shuffleArray(options, poem.id * 100);
     }, [poem]);
 
     // 预加载考试图片
@@ -115,6 +130,7 @@ export default function PunchIn() {
         if (poemId > 1) {
             navigate(`/punch-in?poemId=${poemId - 1}`);
             setPunchedIn(false);
+            setShowFlash(false);
         }
     };
 
@@ -123,6 +139,7 @@ export default function PunchIn() {
         if (poemId < POEMS.length) {
             navigate(`/punch-in?poemId=${poemId + 1}`);
             setPunchedIn(false);
+            setShowFlash(false);
         }
     };
 
@@ -205,7 +222,7 @@ export default function PunchIn() {
                                         <X className="w-4 h-4 mr-2" /> 关闭动画
                                     </Button>
                                 </div>
-                                <FlashPlayer url={`/swf/${poem?.id}.swf`} className="shadow-2xl" />
+                                <FlashPlayer url={`https://68ee851a.poems-dlg.pages.dev/${poem?.id}.swf`} className="shadow-2xl" />
                             </div>
                         )}
 
