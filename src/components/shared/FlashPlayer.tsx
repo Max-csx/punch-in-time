@@ -193,6 +193,9 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
     };
   }, [status, isFullscreen]);
 
+  // 移动端全屏时强制横屏显示
+  const shouldRotateToLandscape = isMobile() && isFullscreen && orientation === 'portrait';
+
   return (
     <div
       ref={containerRef}
@@ -202,7 +205,18 @@ export default function FlashPlayer({ url, className, autoPlay = true }: FlashPl
         isFullscreen && "rounded-none border-none",
         className
       )}
-      style={isFullscreen ? { background: '#000' } : undefined}
+      style={isFullscreen ? {
+        background: '#000',
+        ...(shouldRotateToLandscape && {
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vh',
+          height: '100vw',
+          transform: 'rotate(90deg) translateX(50%)',
+          transformOrigin: 'top right',
+        })
+      } : undefined}
     >
       {/* Ruffle object - 使用标准 embed 方式 */}
       {status === 'ready' && (
